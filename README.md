@@ -16,9 +16,21 @@ Machine learning classification of ocean water masses using radiocarbon and stab
 
 **Try it:** [Live Demo on HuggingFace Spaces](https://huggingface.co/spaces/user5761/waterprint)
 
-## Overview
+---
 
-WaterPrint classifies major ocean water masses—North Atlantic Deep Water (NADW), Antarctic Bottom Water (AABW), Antarctic Intermediate Water (AAIW), and Circumpolar Deep Water (CDW)—using the GLODAP v2.2023 dataset.
+## Abstract
+
+Identifying ocean water masses traditionally requires geographic context and physical properties. Here we demonstrate that isotopic tracers alone—radiocarbon (Δ¹⁴C) and stable carbon isotopes (δ¹³C)—can classify major deep water masses with 74.1% accuracy using machine learning, without explicit depth, latitude, or salinity inputs. Using 7,138 samples from the GLODAP v2.2023 dataset, we classify North Atlantic Deep Water, Antarctic Bottom Water, Antarctic Intermediate Water, and Circumpolar Deep Water. Leave-One-Cruise-Out cross-validation confirms spatial generalization (median 73.0%). The 91‰ Δ¹⁴C difference between recently-ventilated and aged water masses encodes approximately 870 years of circulation history. This temporal information, unavailable from physical properties, enables isotope-based classification. Our results suggest that isotopic fingerprints encode sufficient information for water mass identification, with potential implications for paleoceanographic reconstructions where physical properties are unavailable.
+
+![Isotope-only classification of ocean water masses](figures/fig_1_isotope_classification.png)
+
+**Figure 1.** Isotope-only classification of ocean water masses. (a) Δ¹⁴C distributions by water mass showing distinct signatures for "young" (AAIW, NADW) versus "old" (CDW, AABW) water masses. (b) Isotope fingerprint space (δ¹³C vs Δ¹⁴C) revealing water mass clustering. (c) Confusion matrix for isotope-only classification (74.1% accuracy). (d) Accuracy comparison across feature sets.
+
+---
+
+**Full paper coming soon.** Contact christian.gruber@innophore.com if you're interested in early access or collaboration.
+
+---
 
 ## Key Finding
 
