@@ -29,30 +29,31 @@ Download the GLODAP v2.2023 Merged Master File from https://www.glodap.info/ and
 
 ## Usage
 
-### Isotope-Only Classification (Core Experiment)
+### Isotope Classification (Core Experiment)
 
-```python
-from src.isotope_only_analysis import run_isotope_only_classification
-
-results = run_isotope_only_classification()
-print(f"Accuracy: {results['accuracy']:.1%}")
+```bash
+python src/isotope_classification.py
 ```
 
 ### Full Analysis
 
-```python
-from src.waterprint_analysis import run_full_analysis
+```bash
+python src/waterprint_analysis.py
+```
 
-results = run_full_analysis()
+### Generate Figures
+
+```bash
+python src/generate_figures.py
 ```
 
 ## Repository Structure
 
 ```
 ├── src/
-│   ├── isotope_only_analysis.py    # Core experiment: Δ¹⁴C + δ¹³C only
+│   ├── isotope_classification.py   # Core experiment: Δ¹⁴C + δ¹³C only
 │   ├── waterprint_analysis.py      # Full-feature classification
-│   └── generate_all_figures.py     # Reproduce manuscript figures
+│   └── generate_figures.py         # Reproduce manuscript figures
 ├── data/
 │   └── README.md                   # Data download instructions
 ├── requirements.txt
