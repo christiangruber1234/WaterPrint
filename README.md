@@ -28,7 +28,7 @@ Identifying ocean water masses traditionally requires geographic context and phy
 
 ---
 
-**Full paper coming soon.** Contact christian.gruber@innophore.com if you're interested in early access or collaboration.
+**Full paper coming soon.** Contact christiangruber1234@gmail.com if you're interested in early access or collaboration.
 
 ---
 
