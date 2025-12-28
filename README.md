@@ -18,11 +18,6 @@ The 91‰ difference in mean Δ¹⁴C between NADW (−86‰) and AABW (−177�
 pip install -r requirements.txt
 ```
 
-For GPU support:
-```bash
-pip install -r requirements_gpu.txt
-```
-
 ## Data
 
 Download the GLODAP v2.2023 Merged Master File from https://www.glodap.info/ and place it in the `data/` directory. See [data/README.md](data/README.md) for details.
@@ -57,7 +52,6 @@ python src/generate_figures.py
 ├── data/
 │   └── README.md                   # Data download instructions
 ├── requirements.txt
-├── requirements_gpu.txt
 ├── LICENSE
 └── CITATION.cff
 ```
