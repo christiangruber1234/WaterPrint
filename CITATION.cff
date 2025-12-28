@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "WaterPrint: Machine Learning Classification of Ocean Water Masses Using Isotopic Tracers"
+authors:
+  - family-names: "Gruber"
+    given-names: "Christian"
+repository-code: "https://github.com/christiangruber1234/waterprint"
+license: MIT
+keywords:
+  - oceanography
+  - water mass classification
+  - radiocarbon
+  - machine learning
+  - isotope geochemistry
+  - GLODAP
