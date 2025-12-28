@@ -18,11 +18,21 @@ The 91‰ difference in mean Δ¹⁴C between NADW (−86‰) and AABW (−177�
 pip install -r requirements.txt
 ```
 
-## Data
+## Quick Start
 
-Download the GLODAP v2.2023 Merged Master File from https://www.glodap.info/ and place it in the `data/` directory. See [data/README.md](data/README.md) for details.
+Run the complete analysis pipeline (downloads data, runs analysis, generates figures):
+
+```bash
+python run.py
+```
 
 ## Usage
+
+### Download Data
+
+```bash
+python data/download_glodap.py
+```
 
 ### Isotope Classification (Core Experiment)
 
@@ -45,12 +55,14 @@ python src/generate_figures.py
 ## Repository Structure
 
 ```
+├── run.py                          # Complete pipeline
 ├── src/
 │   ├── isotope_classification.py   # Core experiment: Δ¹⁴C + δ¹³C only
 │   ├── waterprint_analysis.py      # Full-feature classification
 │   └── generate_figures.py         # Reproduce manuscript figures
 ├── data/
-│   └── README.md                   # Data download instructions
+│   ├── download_glodap.py          # Download GLODAP dataset
+│   └── README.md                   # Data instructions
 ├── requirements.txt
 ├── LICENSE
 └── CITATION.cff
