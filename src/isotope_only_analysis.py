@@ -3,10 +3,10 @@
 WaterPrint: Isotope-Only Analysis
 ==================================
 
-Test: Können wir Wassermassen NUR mit Isotopen klassifizieren?
-(ohne depth, salinity, etc. die in der Label-Definition verwendet wurden)
+Can we classify water masses using ONLY isotopes?
+(without depth, salinity, etc. that were used in label definitions)
 
-Dies ist der wissenschaftlich relevante Test!
+This is the scientifically relevant test.
 """
 
 import pandas as pd
@@ -384,21 +384,21 @@ def run_isotope_only_analysis():
         print(f"★ Adding δ¹³C improves accuracy by {improvement:.1%}")
 
     print("\n" + "=" * 60)
-    print("WISSENSCHAFTLICHE INTERPRETATION")
+    print("SCIENTIFIC INTERPRETATION")
     print("=" * 60)
     print("""
-Die Isotopen allein können Wassermassen mit ~{acc:.0%} Accuracy
-unterscheiden. Das bedeutet:
+Isotopes alone can distinguish water masses with ~{acc:.0%} accuracy.
+This means:
 
-1. Δ¹⁴C ("Wasseralter") trägt echte diagnostische Information
-2. Die Unterschiede zwischen NADW (-85‰) und AABW (-177‰)
-   sind physikalisch real und messbar
-3. Ein ML-Modell kann diese Unterschiede automatisch erkennen
+1. Δ¹⁴C ("water age") carries genuine diagnostic information
+2. The differences between NADW (-85‰) and AABW (-177‰)
+   are physically real and measurable
+3. An ML model can automatically detect these differences
 
-Forschungsrelevanz:
-→ Δ¹⁴C kann Ozean-Ventilation quantifizieren
-→ Kann auf Paläo-Daten (Foram-Schalen) angewendet werden
-→ Ermöglicht automatische Wassermassen-Rekonstruktion
+Research relevance:
+- Δ¹⁴C can quantify ocean ventilation
+- Applicable to paleo-data (foraminiferal shells)
+- Enables automatic water mass reconstruction
 """.format(acc=np.mean(accuracies_both)))
 
 

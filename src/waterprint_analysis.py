@@ -3,15 +3,12 @@
 WaterPrint: AI-Powered Water Mass Fingerprinting
 =================================================
 
-Wissenschaftliche Analyse mit:
-- GLODAP v2.2023 Daten
-- XGBoost Klassifikation
-- Stratified K-Fold Cross-Validation
-- SHAP Feature Importance
-- Statistische Signifikanztests
-
-Author: ForamAI Project
-Date: 2025-12-25
+Scientific analysis using:
+- GLODAP v2.2023 dataset
+- XGBoost classification
+- Stratified K-Fold cross-validation
+- SHAP feature importance
+- Statistical significance tests
 """
 
 import pandas as pd
@@ -696,16 +693,17 @@ def print_summary(results_kfold, loco_accuracies, imp_df):
     print("   Large effect sizes (Cohen's d > 0.8) between major water masses")
 
     print("\n" + "=" * 60)
-    print("SUMMARY:")
+    print("CONCLUSION")
     print("=" * 60)
     print("""
-"Ich habe ein ML-Tool gebaut, das Wassermassen anhand von
-Isotopen-Fingerprints identifiziert. Das Modell erreicht
-~{acc:.0%} Accuracy und zeigt, dass Δ¹⁴C einer der wichtigsten
-Prädiktoren ist – NADW hat im Schnitt -85‰, AABW -155‰.
+The ML model identifies water masses using isotopic fingerprints
+with ~{acc:.0%} accuracy. Δ¹⁴C is among the most important
+predictors - NADW averages -85‰, AABW -155‰.
 
-Das könnte für deine Ozean-Ventilations-Forschung interessant
-sein – wir könnten das auf Paläo-Daten anwenden!"
+This approach enables:
+- Quantitative ocean ventilation studies
+- Application to paleo-oceanographic data
+- Automated water mass reconstruction
 """.format(acc=xgb_acc))
 
 
