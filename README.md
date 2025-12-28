@@ -1,3 +1,15 @@
+---
+title: WaterPrint
+emoji: 🌊
+colorFrom: blue
+colorTo: cyan
+sdk: gradio
+sdk_version: "4.44.0"
+app_file: app.py
+pinned: false
+license: mit
+---
+
 # WaterPrint
 
 Machine learning classification of ocean water masses using radiocarbon and stable carbon isotopes.
