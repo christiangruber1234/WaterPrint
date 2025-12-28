@@ -14,6 +14,8 @@ license: mit
 
 Machine learning classification of ocean water masses using radiocarbon and stable carbon isotopes.
 
+**Try it:** [Live Demo on HuggingFace Spaces](https://huggingface.co/spaces/user5761/waterprint)
+
 ## Overview
 
 WaterPrint classifies major ocean water masses—North Atlantic Deep Water (NADW), Antarctic Bottom Water (AABW), Antarctic Intermediate Water (AAIW), and Circumpolar Deep Water (CDW)—using the GLODAP v2.2023 dataset.
