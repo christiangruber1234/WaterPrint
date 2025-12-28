@@ -12,6 +12,8 @@ license: mit
 
 # WaterPrint
 
+**Isotopic fingerprints classify ocean water masses without geographic coordinates**
+
 Machine learning classification of ocean water masses using radiocarbon and stable carbon isotopes.
 
 **Try it:** [Live Demo on HuggingFace Spaces](https://huggingface.co/spaces/user5761/waterprint)
