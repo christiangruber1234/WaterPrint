@@ -7,6 +7,6 @@ xgboost>=2.0
 shap>=0.42
 joblib
 gradio==4.31.0
-gradio_client==0.16.4
+gradio_client==0.16.2
 huggingface_hub>=0.20.0,<1.0.0
 folium>=0.14
