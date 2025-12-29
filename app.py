@@ -93,9 +93,9 @@ def classify(d14c, d13c):
 # ============ TAB 2: BATCH ============
 def classify_batch(file):
     if file is None:
-        return "Please upload a CSV file", None, None
+        return "Please upload a CSV file", None
     if not load_model():
-        return "Model not loaded", None, None
+        return "Model not loaded", None
 
     try:
         df = pd.read_csv(file.name)
@@ -109,7 +109,7 @@ def classify_batch(file):
                 df = df.rename(columns={col: 'delta13c'})
 
         if 'delta14c' not in df.columns or 'delta13c' not in df.columns:
-            return "Could not find Δ¹⁴C and δ¹³C columns", None, None
+            return "Could not find Δ¹⁴C and δ¹³C columns", None
 
         results = []
         classes = model_data['label_encoder'].classes_
@@ -119,7 +119,7 @@ def classify_batch(file):
             d13c = row.get('delta13c')
 
             if pd.isna(d14c) or pd.isna(d13c):
-                results.append({'sample': idx, 'prediction': 'N/A', 'confidence': 0})
+                results.append({'sample': idx, 'd14c': None, 'd13c': None, 'prediction': 'N/A', 'confidence': 0})
                 continue
 
             X = np.array([[d14c, d13c]])
@@ -129,27 +129,40 @@ def classify_batch(file):
 
             results.append({
                 'sample': idx,
-                'delta14c': d14c,
-                'delta13c': d13c,
+                'd14c': d14c,
+                'd13c': d13c,
                 'prediction': classes[pred_idx],
-                'confidence': f"{proba[pred_idx]:.1%}"
+                'confidence': proba[pred_idx]
             })
 
         results_df = pd.DataFrame(results)
-
-        summary = f"**Total samples:** {len(results)}\n\n"
         valid = results_df[results_df['prediction'] != 'N/A']
+
+        # Build markdown output
+        summary = f"**Total samples:** {len(results)}\n\n"
         summary += f"**Classified:** {len(valid)}\n\n"
         summary += "**Distribution:**\n"
         for wm, count in valid['prediction'].value_counts().items():
             summary += f"- {wm}: {count}\n"
+
+        # Add results table
+        summary += "\n### Results\n\n"
+        summary += "| # | Δ¹⁴C | δ¹³C | Prediction | Confidence |\n"
+        summary += "|---|------|------|------------|------------|\n"
+        for _, row in results_df.head(20).iterrows():
+            if row['prediction'] != 'N/A':
+                summary += f"| {row['sample']} | {row['d14c']:.1f} | {row['d13c']:.2f} | {row['prediction']} | {row['confidence']:.1%} |\n"
+            else:
+                summary += f"| {row['sample']} | - | - | N/A | - |\n"
+        if len(results_df) > 20:
+            summary += f"\n*Showing first 20 of {len(results_df)} samples*\n"
 
         # Plot
         fig, ax = plt.subplots(figsize=(10, 6))
         for wm in COLORS:
             mask = valid['prediction'] == wm
             if mask.sum() > 0:
-                ax.scatter(valid.loc[mask, 'delta14c'], valid.loc[mask, 'delta13c'],
+                ax.scatter(valid.loc[mask, 'd14c'], valid.loc[mask, 'd13c'],
                           c=COLORS[wm], label=wm, alpha=0.7, s=50)
         ax.set_xlabel('Δ¹⁴C (‰)')
         ax.set_ylabel('δ¹³C (‰)')
@@ -157,9 +170,9 @@ def classify_batch(file):
         ax.legend()
         plt.tight_layout()
 
-        return summary, results_df, fig
+        return summary, fig
     except Exception as e:
-        return f"Error: {str(e)}", None, None
+        return f"Error: {str(e)}", None
 
 # ============ TAB 3: VISUALIZATION ============
 def show_isotope_space(highlight):
@@ -408,9 +421,8 @@ with gr.Blocks(title="WaterPrint", theme=gr.themes.Soft()) as demo:
         file_in = gr.File(label="Upload CSV", file_types=[".csv"])
         btn2 = gr.Button("Process", variant="primary")
         out2 = gr.Markdown()
-        df_out = gr.Dataframe(label="Results")
         plot2 = gr.Plot()
-        btn2.click(classify_batch, [file_in], [out2, df_out, plot2])
+        btn2.click(classify_batch, [file_in], [out2, plot2])
 
     with gr.Tab("Visualization"):
         highlight = gr.Dropdown(["All", "NADW", "AABW", "AAIW", "CDW"], value="All", label="Highlight")
