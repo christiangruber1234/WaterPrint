@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import joblib
 from sklearn.neighbors import NearestNeighbors
+import folium
 
 # Load model
 MODEL_PATH = Path(__file__).parent / "models" / "waterprint_model.joblib"
@@ -259,11 +260,54 @@ def explain(d14c, d13c):
     return result, fig
 
 # ============ TAB 5: SIMILAR SAMPLES ============
+def create_sample_map(similar):
+    """Create an interactive Folium map showing similar sample locations."""
+    # Check for lat/lon columns
+    if 'lat' not in similar.columns or 'lon' not in similar.columns:
+        return None
+    valid_coords = similar.dropna(subset=['lat', 'lon'])
+    if len(valid_coords) == 0:
+        return None
+
+    center_lat = valid_coords['lat'].mean()
+    center_lon = valid_coords['lon'].mean()
+    m = folium.Map(location=[center_lat, center_lon], zoom_start=2, tiles='CartoDB positron',
+                   width='100%', height=400)
+
+    wm_colors = {'NADW': 'red', 'AABW': 'blue', 'AAIW': 'green', 'CDW': 'purple'}
+    max_dist = similar['distance'].max() if 'distance' in similar.columns else 1
+
+    for i, (_, row) in enumerate(valid_coords.iterrows(), 1):
+        wm = row['water_mass']
+        color = wm_colors.get(wm, 'gray')
+        # Size inversely proportional to distance (closer = bigger)
+        dist = row.get('distance', 0.5)
+        similarity = 1 - (dist / max_dist) if max_dist > 0 else 0.5
+        radius = 6 + (similarity * 8)
+
+        popup = f"#{i} {wm}<br>Δ¹⁴C: {row['delta14c']:.1f}‰<br>δ¹³C: {row['delta13c']:.2f}‰"
+        if 'depth' in row and pd.notna(row['depth']):
+            popup += f"<br>Depth: {row['depth']:.0f}m"
+
+        folium.CircleMarker(
+            location=[row['lat'], row['lon']],
+            radius=radius,
+            popup=popup,
+            color=color,
+            fill=True,
+            fillColor=color,
+            fillOpacity=0.7,
+            weight=2
+        ).add_to(m)
+
+    return m
+
+
 def find_similar(d14c, d13c, n_neighbors):
     if d14c is None or d13c is None:
-        return "Please enter both values", None
+        return "Please enter both values", None, "<p>Please enter values</p>"
     if not load_model():
-        return "Model not loaded", None
+        return "Model not loaded", None, "<p>Model not loaded</p>"
 
     n = int(n_neighbors)
     X = np.array([[d14c, d13c]])
@@ -280,12 +324,15 @@ def find_similar(d14c, d13c, n_neighbors):
         result += f"{i}. **{row['water_mass']}** - Δ¹⁴C: {row['delta14c']:.1f}‰, δ¹³C: {row['delta13c']:.2f}‰"
         if 'depth' in row and pd.notna(row['depth']):
             result += f", Depth: {row['depth']:.0f}m"
+        if 'lat' in row and 'lon' in row and pd.notna(row['lat']):
+            result += f" ({row['lat']:.1f}°, {row['lon']:.1f}°)"
         result += "\n"
 
     result += "\n### Distribution\n"
     for wm, count in similar['water_mass'].value_counts().items():
         result += f"- {wm}: {count}\n"
 
+    # Scatter plot
     fig, ax = plt.subplots(figsize=(10, 8))
     for wm in COLORS:
         mask = training['water_mass'] == wm
@@ -302,7 +349,15 @@ def find_similar(d14c, d13c, n_neighbors):
     ax.set_title(f'Your Sample and {n} Most Similar Samples')
     ax.legend()
     plt.tight_layout()
-    return result, fig
+
+    # Create map
+    sample_map = create_sample_map(similar)
+    if sample_map:
+        map_html = sample_map._repr_html_()
+    else:
+        map_html = "<p style='padding:20px; color:#666;'>No geographic coordinates available for these samples.</p>"
+
+    return result, fig, map_html
 
 # ============ TAB 6: UNCERTAINTY ============
 def uncertainty(d14c, d13c):
@@ -428,8 +483,10 @@ with gr.Blocks(title="WaterPrint") as demo:
                     btn5 = gr.Button("Find Similar", variant="primary")
                 with gr.Column(scale=2):
                     out5 = gr.Markdown()
-            plot5 = gr.Plot()
-            btn5.click(find_similar, [d14c_5, d13c_5, n_sim], [out5, plot5])
+            with gr.Row():
+                plot5 = gr.Plot(label="Isotope Space")
+                map5 = gr.HTML(label="Sample Locations")
+            btn5.click(find_similar, [d14c_5, d13c_5, n_sim], [out5, plot5, map5])
 
         with gr.Tab("Uncertainty"):
             with gr.Row():
