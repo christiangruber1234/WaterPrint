@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 WaterPrint - Water Mass Classification using Isotopic Fingerprints
-Gradio app for HuggingFace Spaces
+Gradio 6.x app for HuggingFace Spaces
 """
 
 import gradio as gr
@@ -33,7 +33,6 @@ def load_model():
     global model_data, nn_model
     if model_data is None and MODEL_PATH.exists():
         model_data = joblib.load(MODEL_PATH)
-        # Fit nearest neighbors
         X = model_data['training_data'][['delta14c', 'delta13c']].values
         X_scaled = model_data['scaler_isotope'].transform(X)
         nn_model = NearestNeighbors(n_neighbors=20, metric='euclidean')
@@ -100,7 +99,6 @@ def classify_batch(file):
     try:
         df = pd.read_csv(file.name)
 
-        # Detect columns
         for col in df.columns:
             col_lower = col.lower().replace(' ', '').replace('_', '')
             if 'delta14' in col_lower or 'd14c' in col_lower:
@@ -128,36 +126,28 @@ def classify_batch(file):
             pred_idx = np.argmax(proba)
 
             results.append({
-                'sample': idx,
-                'd14c': d14c,
-                'd13c': d13c,
-                'prediction': classes[pred_idx],
-                'confidence': proba[pred_idx]
+                'sample': idx, 'd14c': d14c, 'd13c': d13c,
+                'prediction': classes[pred_idx], 'confidence': proba[pred_idx]
             })
 
         results_df = pd.DataFrame(results)
         valid = results_df[results_df['prediction'] != 'N/A']
 
-        # Build markdown output
         summary = f"**Total samples:** {len(results)}\n\n"
         summary += f"**Classified:** {len(valid)}\n\n"
         summary += "**Distribution:**\n"
         for wm, count in valid['prediction'].value_counts().items():
             summary += f"- {wm}: {count}\n"
 
-        # Add results table
         summary += "\n### Results\n\n"
         summary += "| # | Δ¹⁴C | δ¹³C | Prediction | Confidence |\n"
         summary += "|---|------|------|------------|------------|\n"
         for _, row in results_df.head(20).iterrows():
             if row['prediction'] != 'N/A':
                 summary += f"| {row['sample']} | {row['d14c']:.1f} | {row['d13c']:.2f} | {row['prediction']} | {row['confidence']:.1%} |\n"
-            else:
-                summary += f"| {row['sample']} | - | - | N/A | - |\n"
         if len(results_df) > 20:
             summary += f"\n*Showing first 20 of {len(results_df)} samples*\n"
 
-        # Plot
         fig, ax = plt.subplots(figsize=(10, 6))
         for wm in COLORS:
             mask = valid['prediction'] == wm
@@ -178,7 +168,6 @@ def classify_batch(file):
 def show_isotope_space(highlight):
     if not load_model():
         return None
-
     fig, ax = plt.subplots(figsize=(10, 8))
     training = model_data['training_data']
     for wm in COLORS:
@@ -199,7 +188,6 @@ def show_isotope_space(highlight):
 def show_ts_diagram(highlight):
     if not load_model():
         return None
-
     fig, ax = plt.subplots(figsize=(10, 8))
     training = model_data['training_data']
     for wm in COLORS:
@@ -250,21 +238,17 @@ def explain(d14c, d13c):
             result += f"- {wm}: {dist:.1f} (center Δ¹⁴C: {mean_d14c:.0f}‰){marker}\n"
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-
-    # Position plot
     for wm in COLORS:
         mask = training['water_mass'] == wm
         if mask.sum() > 0:
             axes[0].scatter(training.loc[mask, 'delta14c'], training.loc[mask, 'delta13c'],
                            c=COLORS[wm], label=wm, alpha=0.3, s=10)
-    axes[0].scatter([d14c], [d13c], c='black', s=200, marker='*',
-                   edgecolors='white', linewidths=2, zorder=10)
+    axes[0].scatter([d14c], [d13c], c='black', s=200, marker='*', edgecolors='white', linewidths=2, zorder=10)
     axes[0].set_xlabel('Δ¹⁴C (‰)')
     axes[0].set_ylabel('δ¹³C (‰)')
     axes[0].set_title('Sample Position')
     axes[0].legend()
 
-    # Distance plot
     wm_names = [d[0] for d in distances]
     dists = [d[1] for d in distances]
     colors = [COLORS[wm] for wm in wm_names]
@@ -272,7 +256,6 @@ def explain(d14c, d13c):
     axes[1].set_xlabel('Distance to Centroid')
     axes[1].set_title('Distance to Each Water Mass')
     plt.tight_layout()
-
     return result, fig
 
 # ============ TAB 5: SIMILAR SAMPLES ============
@@ -293,7 +276,6 @@ def find_similar(d14c, d13c, n_neighbors):
 
     result = f"**Your input:** Δ¹⁴C = {d14c}‰, δ¹³C = {d13c}‰\n\n"
     result += f"### Top {n} Similar Samples\n\n"
-
     for i, (_, row) in enumerate(similar.iterrows(), 1):
         result += f"{i}. **{row['water_mass']}** - Δ¹⁴C: {row['delta14c']:.1f}‰, δ¹³C: {row['delta13c']:.2f}‰"
         if 'depth' in row and pd.notna(row['depth']):
@@ -304,26 +286,22 @@ def find_similar(d14c, d13c, n_neighbors):
     for wm, count in similar['water_mass'].value_counts().items():
         result += f"- {wm}: {count}\n"
 
-    # Plot
     fig, ax = plt.subplots(figsize=(10, 8))
     for wm in COLORS:
         mask = training['water_mass'] == wm
         if mask.sum() > 0:
-            ax.scatter(training.loc[mask, 'delta14c'], training.loc[mask, 'delta13c'],
-                      c=COLORS[wm], alpha=0.1, s=5)
+            ax.scatter(training.loc[mask, 'delta14c'], training.loc[mask, 'delta13c'], c=COLORS[wm], alpha=0.1, s=5)
     for wm in COLORS:
         mask = similar['water_mass'] == wm
         if mask.sum() > 0:
             ax.scatter(similar.loc[mask, 'delta14c'], similar.loc[mask, 'delta13c'],
                       c=COLORS[wm], label=wm, alpha=0.9, s=100, edgecolors='black', linewidths=1)
-    ax.scatter([d14c], [d13c], c='yellow', s=300, marker='*',
-              edgecolors='black', linewidths=2, zorder=10, label='Your sample')
+    ax.scatter([d14c], [d13c], c='yellow', s=300, marker='*', edgecolors='black', linewidths=2, zorder=10, label='Your sample')
     ax.set_xlabel('Δ¹⁴C (‰)')
     ax.set_ylabel('δ¹³C (‰)')
     ax.set_title(f'Your Sample and {n} Most Similar Samples')
     ax.legend()
     plt.tight_layout()
-
     return result, fig
 
 # ============ TAB 6: UNCERTAINTY ============
@@ -343,7 +321,6 @@ def uncertainty(d14c, d13c):
     norm_entropy = entropy / np.log(len(proba))
     sorted_proba = np.sort(proba)[::-1]
     margin = sorted_proba[0] - sorted_proba[1]
-
     distances, _ = nn_model.kneighbors(X_scaled, n_neighbors=5)
     mean_dist = np.mean(distances)
 
@@ -361,18 +338,15 @@ def uncertainty(d14c, d13c):
     result += f"- Normalized Entropy: {norm_entropy:.2f}\n"
     result += f"- Confidence Margin: {margin:.2f}\n"
     result += f"- Distance to Neighbors: {mean_dist:.2f}\n\n"
-
     if margin < 0.2:
         result += "⚠️ Sample is near classification boundary\n"
     if mean_dist > 2.0:
         result += "⚠️ Sample is far from training data\n"
-
     result += "\n### Probabilities\n"
     for i, c in enumerate(classes):
         result += f"- {c}: {proba[i]:.1%}\n"
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-
     colors = [COLORS.get(c, 'gray') for c in classes]
     axes[0].bar(classes, proba, color=colors, alpha=0.7, edgecolor='black')
     axes[0].axhline(y=0.5, color='red', linestyle='--', label='50%')
@@ -388,84 +362,85 @@ def uncertainty(d14c, d13c):
         if mask.sum() > 0:
             axes[1].scatter(training.loc[mask, 'delta14c'], training.loc[mask, 'delta13c'],
                            c=COLORS[wm], alpha=0.3, s=10, label=wm)
-    axes[1].scatter([d14c], [d13c], c='black', s=200, marker='*',
-                   edgecolors='white', linewidths=2, zorder=10)
+    axes[1].scatter([d14c], [d13c], c='black', s=200, marker='*', edgecolors='white', linewidths=2, zorder=10)
     axes[1].set_xlabel('Δ¹⁴C (‰)')
     axes[1].set_ylabel('δ¹³C (‰)')
     axes[1].set_title('Sample Position')
     axes[1].legend()
     plt.tight_layout()
-
     return result, fig
 
-# ============ BUILD INTERFACE ============
-with gr.Blocks(title="WaterPrint", theme=gr.themes.Soft()) as demo:
+# ============ BUILD INTERFACE (Gradio 6.x syntax) ============
+with gr.Blocks(title="WaterPrint") as demo:
     gr.Markdown("# WaterPrint: Water Mass Classification")
     gr.Markdown("Classify ocean water masses using isotopic fingerprints (Δ¹⁴C, δ¹³C) — no geographic coordinates required")
 
-    with gr.Tab("Classify"):
-        with gr.Row():
-            with gr.Column(scale=1):
-                d14c_1 = gr.Number(label="Δ¹⁴C (‰)", value=-120, info="Typical: -200 to 0")
-                d13c_1 = gr.Number(label="δ¹³C (‰)", value=0.5, info="Typical: -1 to 2")
-                btn1 = gr.Button("Classify", variant="primary")
-            with gr.Column(scale=2):
-                out1 = gr.Markdown()
-        with gr.Row():
-            plot1a = gr.Plot(label="Probabilities")
-            plot1b = gr.Plot(label="Position")
-        btn1.click(classify, [d14c_1, d13c_1], [out1, plot1a, plot1b])
+    with gr.Tabs():
+        with gr.Tab("Classify"):
+            with gr.Row():
+                with gr.Column(scale=1):
+                    d14c_1 = gr.Number(label="Δ¹⁴C (‰)", value=-120)
+                    d13c_1 = gr.Number(label="δ¹³C (‰)", value=0.5)
+                    btn1 = gr.Button("Classify", variant="primary")
+                with gr.Column(scale=2):
+                    out1 = gr.Markdown()
+            with gr.Row():
+                plot1a = gr.Plot(label="Probabilities")
+                plot1b = gr.Plot(label="Position")
+            btn1.click(classify, [d14c_1, d13c_1], [out1, plot1a, plot1b])
 
-    with gr.Tab("Batch"):
-        gr.Markdown("Upload CSV with `delta14c` and `delta13c` columns")
-        file_in = gr.File(label="Upload CSV", file_types=[".csv"])
-        btn2 = gr.Button("Process", variant="primary")
-        out2 = gr.Markdown()
-        plot2 = gr.Plot()
-        btn2.click(classify_batch, [file_in], [out2, plot2])
+        with gr.Tab("Batch"):
+            gr.Markdown("Upload CSV with `delta14c` and `delta13c` columns")
+            file_in = gr.File(label="Upload CSV", file_types=[".csv"])
+            btn2 = gr.Button("Process", variant="primary")
+            out2 = gr.Markdown()
+            plot2 = gr.Plot()
+            btn2.click(classify_batch, [file_in], [out2, plot2])
 
-    with gr.Tab("Visualization"):
-        highlight = gr.Dropdown(["All", "NADW", "AABW", "AAIW", "CDW"], value="All", label="Highlight")
-        with gr.Row():
-            plot3a = gr.Plot(label="Isotope Space")
-            plot3b = gr.Plot(label="T-S Diagram")
-        with gr.Row():
-            gr.Button("Show Isotope Space").click(show_isotope_space, [highlight], [plot3a])
-            gr.Button("Show T-S Diagram").click(show_ts_diagram, [highlight], [plot3b])
+        with gr.Tab("Visualization"):
+            highlight = gr.Dropdown(["All", "NADW", "AABW", "AAIW", "CDW"], value="All", label="Highlight")
+            with gr.Row():
+                plot3a = gr.Plot(label="Isotope Space")
+                plot3b = gr.Plot(label="T-S Diagram")
+            with gr.Row():
+                btn3a = gr.Button("Show Isotope Space")
+                btn3b = gr.Button("Show T-S Diagram")
+            btn3a.click(show_isotope_space, [highlight], [plot3a])
+            btn3b.click(show_ts_diagram, [highlight], [plot3b])
 
-    with gr.Tab("Explainability"):
-        with gr.Row():
-            with gr.Column(scale=1):
-                d14c_4 = gr.Number(label="Δ¹⁴C (‰)", value=-120)
-                d13c_4 = gr.Number(label="δ¹³C (‰)", value=0.5)
-                btn4 = gr.Button("Explain", variant="primary")
-            with gr.Column(scale=2):
-                out4 = gr.Markdown()
-        plot4 = gr.Plot()
-        btn4.click(explain, [d14c_4, d13c_4], [out4, plot4])
+        with gr.Tab("Explainability"):
+            with gr.Row():
+                with gr.Column(scale=1):
+                    d14c_4 = gr.Number(label="Δ¹⁴C (‰)", value=-120)
+                    d13c_4 = gr.Number(label="δ¹³C (‰)", value=0.5)
+                    btn4 = gr.Button("Explain", variant="primary")
+                with gr.Column(scale=2):
+                    out4 = gr.Markdown()
+            plot4 = gr.Plot()
+            btn4.click(explain, [d14c_4, d13c_4], [out4, plot4])
 
-    with gr.Tab("Similar Samples"):
-        with gr.Row():
-            with gr.Column(scale=1):
-                d14c_5 = gr.Number(label="Δ¹⁴C (‰)", value=-120)
-                d13c_5 = gr.Number(label="δ¹³C (‰)", value=0.5)
-                n_sim = gr.Slider(3, 20, value=5, step=1, label="Number of samples")
-                btn5 = gr.Button("Find Similar", variant="primary")
-            with gr.Column(scale=2):
-                out5 = gr.Markdown()
-        plot5 = gr.Plot()
-        btn5.click(find_similar, [d14c_5, d13c_5, n_sim], [out5, plot5])
+        with gr.Tab("Similar Samples"):
+            with gr.Row():
+                with gr.Column(scale=1):
+                    d14c_5 = gr.Number(label="Δ¹⁴C (‰)", value=-120)
+                    d13c_5 = gr.Number(label="δ¹³C (‰)", value=0.5)
+                    n_sim = gr.Slider(3, 20, value=5, step=1, label="Number of samples")
+                    btn5 = gr.Button("Find Similar", variant="primary")
+                with gr.Column(scale=2):
+                    out5 = gr.Markdown()
+            plot5 = gr.Plot()
+            btn5.click(find_similar, [d14c_5, d13c_5, n_sim], [out5, plot5])
 
-    with gr.Tab("Uncertainty"):
-        with gr.Row():
-            with gr.Column(scale=1):
-                d14c_6 = gr.Number(label="Δ¹⁴C (‰)", value=-120)
-                d13c_6 = gr.Number(label="δ¹³C (‰)", value=0.5)
-                btn6 = gr.Button("Analyze", variant="primary")
-            with gr.Column(scale=2):
-                out6 = gr.Markdown()
-        plot6 = gr.Plot()
-        btn6.click(uncertainty, [d14c_6, d13c_6], [out6, plot6])
+        with gr.Tab("Uncertainty"):
+            with gr.Row():
+                with gr.Column(scale=1):
+                    d14c_6 = gr.Number(label="Δ¹⁴C (‰)", value=-120)
+                    d13c_6 = gr.Number(label="δ¹³C (‰)", value=0.5)
+                    btn6 = gr.Button("Analyze", variant="primary")
+                with gr.Column(scale=2):
+                    out6 = gr.Markdown()
+            plot6 = gr.Plot()
+            btn6.click(uncertainty, [d14c_6, d13c_6], [out6, plot6])
 
     gr.Markdown("---")
     gr.Markdown("**WaterPrint** | Gruber (2025) | Data: GLODAP v2.2023 | Isotope-only accuracy: 74.1% ± 1.7%")
